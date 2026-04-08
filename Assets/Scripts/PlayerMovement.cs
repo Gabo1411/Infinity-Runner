@@ -3,10 +3,13 @@ using UnityEngine.SceneManagement;
 public class PlayerMovement : MonoBehaviour
 {
     bool alive = true;   
+
     public float speed = 5;
-    public Rigidbody rb;
-    public float horizontalMultiplier = 2;
+    [SerializeField] Rigidbody rb;
+
     float horizontalInput; 
+    [SerializeField] float horizontalMultiplier = 2;
+    
     private void FixedUpdate()
     {
         if (!alive) return;

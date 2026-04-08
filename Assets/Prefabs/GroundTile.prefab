@@ -277,6 +277,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GroundTile
   obstaclePrefab: {fileID: 1672382774842425754, guid: bbb55e513bbe0ac4898c8ed58579f639, type: 3}
+  coinPrefab: {fileID: 7931376922420161446, guid: 4c52eb6da4cb157408317c87bdd58695, type: 3}
 --- !u!1 &9168089107831693873
 GameObject:
   m_ObjectHideFlags: 0
