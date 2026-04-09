@@ -33,30 +33,35 @@ public class GroundTile : MonoBehaviour
 
     public void spawnCoin()
     {
-        int coinsToSpawn = 10;
+        // Intercalar grupos de 7 u 8 monedas
+        int coinsToSpawn = Random.Range(7, 9);
+        Collider collider = GetComponent<Collider>();
+        
+        // Escoger aleatoriamente un carril para las monedas. 
+        // Coincide con el "laneDistance" de 3f que asignamos al player
+        float[] lanePositions = { -3f, 0f, 3f };
+        int selectedLane = Random.Range(0, 3);
+        float laneX = transform.position.x + lanePositions[selectedLane];
+        
+        // Calcular la separación a lo largo de la pieza de suelo
+        float startZ = collider.bounds.min.z + 2f; // Margen inicial
+        float endZ = collider.bounds.max.z - 2f; // Margen final
+        float distanciaLibre = endZ - startZ;
+        float spacing = distanciaLibre / (coinsToSpawn - 1); // Separación notable pero sutil
+
         for (int i = 0; i < coinsToSpawn; i++)
         {
             GameObject temp = Instantiate(coinPrefab, transform);  
-            temp.transform.position = GetRandomPointInCollider(GetComponent<Collider>());
+            float spawnZ = startZ + (i * spacing);
+            temp.transform.position = new Vector3(laneX, 1f, spawnZ); // y = 1f es la altura estándar del jugador/monedas
+
+            // Asignamos el índice para el efecto de giro en cascada
+            Coin coinScript = temp.GetComponent<Coin>();
+            if (coinScript != null)
+            {
+                coinScript.SetCascadeIndex(i);
+            }
         }
-    }
-
-    Vector3 GetRandomPointInCollider (Collider collider)
-    {
-        Vector3 point = new Vector3
-        (
-            Random.Range(collider.bounds.min.x, collider.bounds.max.x),
-            Random.Range(collider.bounds.min.y, collider.bounds.max.y),
-            Random.Range(collider.bounds.min.z, collider.bounds.max.z)
-        );
-
-        if (point != collider.ClosestPoint(point))
-        {
-             GetRandomPointInCollider(collider);
-        }
-
-        point.y = 1;
-        return point;
     }
 
 }
