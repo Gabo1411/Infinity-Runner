@@ -1,11 +1,17 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
 public class PlayerMovement : MonoBehaviour
 {
     bool alive = true;   
 
     public float speed = 5;
+    public float speedIncrement = 0.1f;
+    public float maxSpeed = 15f;
     [SerializeField] Rigidbody rb;
+    
+    // NUEVO: Agregamos la referencia al Animator para controlar las animaciones
+    [SerializeField] Animator anim; 
 
     [SerializeField] float laneDistance = 3f; // Distancia entre los carriles
     [SerializeField] float laneChangeSpeed = 15f; // Velocidad para cambiar de carril
@@ -56,11 +62,26 @@ public class PlayerMovement : MonoBehaviour
 
     public void Die()
     {
+        // NUEVO: Evitamos que el código de muerte se ejecute más de una vez
+        if (!alive) return; 
+
         alive = false;
-        Invoke ("Restart", 1);
+
+        // NUEVO: Disparamos la animación de muerte
+        if (anim != null) 
+        {
+            anim.SetTrigger("Die");
+        }
+
+        // Mostrar menú de derrota a través del GameManager
+        GameManager.Inst.GameOver();
     }
-    void Restart()
+
+    public void IncreaseSpeed()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        if (speed < maxSpeed)
+        {
+            speed += speedIncrement;
+        }
     }
 }

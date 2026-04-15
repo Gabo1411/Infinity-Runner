@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class GroundTile : MonoBehaviour
 { 
@@ -23,45 +24,83 @@ public class GroundTile : MonoBehaviour
    
     public void spawnObstacle()     
     {
-        int obstacleSpawnIndex = Random.Range(2, 5);
-        Transform spawnPoint = transform.GetChild(obstacleSpawnIndex).transform;
+        // Spawn más agresivo: 5% para 0, 35% para 1, 60% para 2 obstáculos
+        float chance = Random.Range(0f, 100f);
+        int obstaclesToSpawn = 0;
+        
+        if (chance <= 5f) {
+            obstaclesToSpawn = 0;
+        } else if (chance <= 40f) {
+            obstaclesToSpawn = 1;
+        } else {
+            obstaclesToSpawn = 2;
+        }
 
-        Instantiate(obstaclePrefab, spawnPoint.position, Quaternion.identity, transform);
+        if (obstaclesToSpawn == 0) return;
+
+        // Índices de los hijos donde aparecen obstáculos (carriles 2, 3 y 4)
+        List<int> lanes = new List<int> { 2, 3, 4 };
+
+        for (int i = 0; i < obstaclesToSpawn; i++)
+        {
+            // Selecciona un carril de la lista y lo remueve para no repetir
+            int listIndex = Random.Range(0, lanes.Count);
+            int obstacleSpawnIndex = lanes[listIndex];
+            lanes.RemoveAt(listIndex);
+
+            Transform spawnPoint = transform.GetChild(obstacleSpawnIndex).transform;
+            Instantiate(obstaclePrefab, spawnPoint.position, Quaternion.identity, transform);
+        }
     }
 
     
 
     public void spawnCoin()
     {
-        // Intercalar grupos de 7 u 8 monedas
-        int coinsToSpawn = Random.Range(7, 9);
+        // Generar 1 o 2 grupos de monedas para llenar más la pantalla y no dejar huecos largos
+        int linesToSpawn = Random.Range(1, 3);
+        List<int> availableLanes = new List<int> { 0, 1, 2 };
         Collider collider = GetComponent<Collider>();
         
-        // Escoger aleatoriamente un carril para las monedas. 
-        // Coincide con el "laneDistance" de 3f que asignamos al player
-        float[] lanePositions = { -3f, 0f, 3f };
-        int selectedLane = Random.Range(0, 3);
-        float laneX = transform.position.x + lanePositions[selectedLane];
-        
-        // Calcular la separación a lo largo de la pieza de suelo
-        float startZ = collider.bounds.min.z + 2f; // Margen inicial
-        float endZ = collider.bounds.max.z - 2f; // Margen final
+        float startZ = collider.bounds.min.z + 2f; 
+        float endZ = collider.bounds.max.z - 2f; 
         float distanciaLibre = endZ - startZ;
-        float spacing = distanciaLibre / (coinsToSpawn - 1); // Separación notable pero sutil
+        float[] lanePositions = { -3f, 0f, 3f };
 
-        for (int i = 0; i < coinsToSpawn; i++)
+        for (int line = 0; line < linesToSpawn; line++)
         {
-            GameObject temp = Instantiate(coinPrefab, transform);  
-            float spawnZ = startZ + (i * spacing);
-            temp.transform.position = new Vector3(laneX, 1f, spawnZ); // y = 1f es la altura estándar del jugador/monedas
+            int coinsToSpawn = Random.Range(6, 12); // Grupos un poco más densos
+            float spacing = distanciaLibre / (coinsToSpawn - 1); 
 
-            // Asignamos el índice para el efecto de giro en cascada
-            Coin coinScript = temp.GetComponent<Coin>();
-            if (coinScript != null)
+            // Seleccionar un carril sin repetir
+            int listIndex = Random.Range(0, availableLanes.Count);
+            int selectedLane = availableLanes[listIndex];
+            availableLanes.RemoveAt(listIndex);
+
+            float laneX = transform.position.x + lanePositions[selectedLane];
+
+            for (int i = 0; i < coinsToSpawn; i++)
             {
-                coinScript.SetCascadeIndex(i);
+                GameObject temp = Instantiate(coinPrefab, transform);  
+                float spawnZ = startZ + (i * spacing);
+                temp.transform.position = new Vector3(laneX, 1f, spawnZ); 
+
+                Coin coinScript = temp.GetComponent<Coin>();
+                if (coinScript != null)
+                {
+                    coinScript.SetCascadeIndex(i);
+                }
             }
         }
     }
 
+    public void SpawnEntranceObstacles()
+    {
+        // Spawnea siempre de forma fija 2 obstáculos: Uno a la izquierda (index 2) y otro a la derecha (index 4)
+        Transform spawnLeft = transform.GetChild(2).transform;
+        Transform spawnRight = transform.GetChild(4).transform;
+
+        Instantiate(obstaclePrefab, spawnLeft.position, Quaternion.identity, transform);
+        Instantiate(obstaclePrefab, spawnRight.position, Quaternion.identity, transform);
+    }
 }
